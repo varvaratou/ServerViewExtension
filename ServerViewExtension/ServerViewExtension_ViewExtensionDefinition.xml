@@ -1,0 +1,4 @@
+﻿<ViewExtensionDefinition>
+  <AssemblyPath>..\ServerViewExtension.dll</AssemblyPath>
+  <TypeName>ServerViewExtension.ServerViewExtension</TypeName>
+</ViewExtensionDefinition>
