@@ -15,7 +15,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -160,4 +160,8 @@
     <Resource Include="ServerViewExtension_ViewExtensionDefinition.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy /Y "$(ProjectDir)ServerViewExtension_ViewExtensionDefinition.xml" "C:\Users\toulkev\dev\adsk\Dynamo\bin\AnyCPU\Debug\viewExtensions\"
+copy /Y "$(TargetDir)ServerViewExtension.dll" "C:\Users\toulkev\dev\adsk\Dynamo\bin\AnyCPU\Debug\"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

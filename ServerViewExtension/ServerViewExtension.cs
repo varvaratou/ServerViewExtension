@@ -1,7 +1,9 @@
 ﻿using System;
-using System.Windows;
 using System.Windows.Controls;
 using Dynamo.Wpf.Extensions;
+using Dynamo.ViewModels;
+using System.Windows;
+
 
 namespace ServerViewExtension
 {
@@ -22,6 +24,9 @@ namespace ServerViewExtension
     public class ServerViewExtension : IViewExtension
     {
         private MenuItem sampleMenuItem;
+        private HttpServer server;
+        private Window dynamoWindow;
+        private DynamoViewModel dynamoViewModel;
 
         public void Dispose()
         {
@@ -36,11 +41,17 @@ namespace ServerViewExtension
             // Save a reference to your loaded parameters.
             // You'll need these later when you want to use
             // the supplied workspaces
+            this.dynamoViewModel = p.DynamoWindow.DataContext as DynamoViewModel;
+            this.dynamoWindow = p.DynamoWindow;
+
+            this.server = new HttpServer(this.dynamoViewModel, this.dynamoWindow);
+            this.server.Start();
 
             sampleMenuItem = new MenuItem { Header = "Show View Extension Sample Window" };
             sampleMenuItem.Click += (sender, args) =>
             {
                 var viewModel = new MainWindowViewModel(p);
+
                 var window = new MainWindow
                 {
                     // Set the data context for the main grid in the window.
@@ -57,6 +68,7 @@ namespace ServerViewExtension
                 window.Show();
             };
             p.AddMenuItem(MenuBarType.View, sampleMenuItem);
+
         }
 
         public void Shutdown()

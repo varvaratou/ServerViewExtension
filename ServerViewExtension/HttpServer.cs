@@ -2,10 +2,12 @@
 using System.Net;
 using System.Threading;
 using System.Text;
-using Newtonsoft.Json;
 using System.Windows;
 using System.Threading.Tasks;
-using System.Diagnostics;
+using Dynamo.ViewModels;
+using System.IO;
+using Dynamo.Controls;
+
 
 namespace ServerViewExtension
 {
@@ -14,13 +16,15 @@ namespace ServerViewExtension
         private HttpListener _httpListener = null;
         private Thread _connectionThread = null;
         private Boolean _running, _disposed;
-        private Window _dynamoWindow;
+        private DynamoViewModel _viewModel;
         public RequestHelper requestHelper;
         public static int stepCounter = 0;
         public static int episodeCounter = 0;
+        private Window _dynamoWindow;
 
-        public HttpServer(string prefix, Window dynamoWindow)
+        public HttpServer(DynamoViewModel viewModel, Window dynamoWindow)
         {
+            this._viewModel = viewModel;
             this._dynamoWindow = dynamoWindow;
 
             if (!HttpListener.IsSupported)
@@ -29,7 +33,7 @@ namespace ServerViewExtension
                 throw new NotSupportedException("The Http Server cannot run on this operating system.");
             }
             _httpListener = new HttpListener();
-            _httpListener.Prefixes.Add(prefix);
+            _httpListener.Prefixes.Add("http://localhost:8080/");
         }
 
         public void Start()
@@ -73,7 +77,7 @@ namespace ServerViewExtension
             HttpListenerRequest request = listenerContext.Request;
             string requestHandlerName = request.Url.AbsolutePath;
 
-            requestHelper = new RequestHelper(listenerContext, this._dynamoWindow);
+            requestHelper = new RequestHelper(listenerContext, this._viewModel, this._dynamoWindow);
             requestHelper.ExecuteAndSendResponse();
         }
 
@@ -108,12 +112,16 @@ namespace ServerViewExtension
     public class RequestHelper
     {
         private HttpListenerContext _context;
-        private Window _dynamoWindow;
+        private DynamoViewModel _dynamoViewModel;
         public TaskCompletionSource<Object> completionObject;
+        private Window _dynamoWindow;
+        public const string BackgroundPreviewName = "BackgroundPreview";
+        internal Watch3DView BackgroundPreview { get; private set; }
 
-        public RequestHelper(HttpListenerContext context, Window dynamoWindow)
+        public RequestHelper(HttpListenerContext context, DynamoViewModel dynamoViewModel, Window dynamoWindow)
         {
             _context = context;
+            _dynamoViewModel = dynamoViewModel;
             _dynamoWindow = dynamoWindow;
         }
 
@@ -129,7 +137,7 @@ namespace ServerViewExtension
             {
                 HttpListenerResponse response = this._context.Response;
                 response.StatusCode = (int)HttpStatusCode.OK;
-                string message = JsonConvert.SerializeObject(data);
+                string message = "saved";
                 byte[] messageBytes = Encoding.Default.GetBytes(message);
                 response.OutputStream.Write(messageBytes, 0, messageBytes.Length);
 
@@ -140,7 +148,12 @@ namespace ServerViewExtension
 
         public void executeAction(HttpListenerRequest request)
         {
-
+            _dynamoWindow.Dispatcher.BeginInvoke(new System.Action(() =>
+            {
+                string path = Path.Combine("C:/Users/toulkev/dev", "output.png");
+                _dynamoViewModel.OnRequestSave3DImage(this, new ImageSaveEventArgs(path));
+                completionObject.SetResult(true);
+            }));
         }
     }
 }
