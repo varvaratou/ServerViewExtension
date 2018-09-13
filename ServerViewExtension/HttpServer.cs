@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Dynamo.ViewModels;
 using System.IO;
 using Dynamo.Controls;
-
+using Newtonsoft.Json;
 
 namespace ServerViewExtension
 {
@@ -109,6 +109,16 @@ namespace ServerViewExtension
         }
     }
 
+    public class ContextData
+    {
+        public object Graph { get; set; }
+
+        public ContextData(object graph)
+        {
+            Graph = graph;
+        }
+    }
+
     public class RequestHelper
     {
         private HttpListenerContext _context;
@@ -125,18 +135,31 @@ namespace ServerViewExtension
             _dynamoWindow = dynamoWindow;
         }
 
+        public static ContextData DeserializeFromStream(Stream stream)
+        {
+            var serializer = new JsonSerializer();
+
+            using (var sr = new StreamReader(stream))
+            using (var jsonTextReader = new JsonTextReader(sr))
+            {
+                return (ContextData)serializer.Deserialize(jsonTextReader, typeof(ContextData));
+            }
+        }
+
         public void ExecuteAndSendResponse()
         {
             completionObject = new TaskCompletionSource<Object>();
-
             HttpListenerRequest request = _context.Request;
+            
             executeAction(request);
 
+            // Prepare response
             var data = completionObject.Task.Result;
             if (data != null)
             {
                 HttpListenerResponse response = this._context.Response;
                 response.StatusCode = (int)HttpStatusCode.OK;
+
                 string message = "saved";
                 byte[] messageBytes = Encoding.Default.GetBytes(message);
                 response.OutputStream.Write(messageBytes, 0, messageBytes.Length);
@@ -148,6 +171,35 @@ namespace ServerViewExtension
 
         public void executeAction(HttpListenerRequest request)
         {
+            var evalComplete = false;
+
+            // Get graph json out of response body
+            Stream body = request.InputStream;
+            ContextData jsonResult = DeserializeFromStream(body);
+            object graph = jsonResult.Graph;
+
+            // TODO: 
+            // Set the inputs according to requests
+            // updatedGraph = self.set_workspace_inputs(graph, inputs)
+
+            // Save graph to json file be able to load on Dynamo
+            string tempJsonFilePath = "C:/Users/toulkev/dev/temp.json";
+            using (StreamWriter file = File.CreateText(tempJsonFilePath))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                serializer.Serialize(file, graph);
+            }
+
+            // Load graph on Dynamo
+            _dynamoViewModel.Model.OpenFileFromPath(tempJsonFilePath, true);
+            Console.WriteLine("loaded file");
+            _dynamoViewModel.Model.EvaluationCompleted += (o, args) => { evalComplete = true; };
+            while (evalComplete == false)
+            {
+                Thread.Sleep(250);
+            }
+
+            // Example code for grabbing a snaphsot
             _dynamoWindow.Dispatcher.BeginInvoke(new System.Action(() =>
             {
                 string path = Path.Combine("C:/Users/toulkev/dev", "output.png");
