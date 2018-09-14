@@ -8,6 +8,8 @@ using Dynamo.ViewModels;
 using System.IO;
 using Dynamo.Controls;
 using Newtonsoft.Json;
+using Dynamo.Graph.Workspaces;
+using Dynamo.Models;
 
 namespace ServerViewExtension
 {
@@ -123,10 +125,12 @@ namespace ServerViewExtension
     {
         private HttpListenerContext _context;
         private DynamoViewModel _dynamoViewModel;
-        public TaskCompletionSource<Object> completionObject;
+        public TaskCompletionSource<Object> graphEvaluationCompletionObject;
+        public TaskCompletionSource<Object> snapshotRetrievalCompletionObject;
         private Window _dynamoWindow;
         public const string BackgroundPreviewName = "BackgroundPreview";
         internal Watch3DView BackgroundPreview { get; private set; }
+        private string outputDir = "C:/Users/toulkev/dev/";
 
         public RequestHelper(HttpListenerContext context, DynamoViewModel dynamoViewModel, Window dynamoWindow)
         {
@@ -148,65 +152,90 @@ namespace ServerViewExtension
 
         public void ExecuteAndSendResponse()
         {
-            completionObject = new TaskCompletionSource<Object>();
+            graphEvaluationCompletionObject = new TaskCompletionSource<Object>();
+            snapshotRetrievalCompletionObject = new TaskCompletionSource<Object>();
             HttpListenerRequest request = _context.Request;
-            
-            executeAction(request);
+
+            ExecuteGraphAction(request);
 
             // Prepare response
-            var data = completionObject.Task.Result;
-            if (data != null)
+            var outputsData = graphEvaluationCompletionObject.Task.Result;
+            if (outputsData != null)
             {
                 HttpListenerResponse response = this._context.Response;
                 response.StatusCode = (int)HttpStatusCode.OK;
 
-                string message = "saved";
-                byte[] messageBytes = Encoding.Default.GetBytes(message);
-                response.OutputStream.Write(messageBytes, 0, messageBytes.Length);
+                TakeSnapshot();
+                var snapshotData = snapshotRetrievalCompletionObject.Task.Result;
+                if (snapshotData != null)
+                {
+                    // Now I just attach a string to the response but normally it will be:
+                    // outputs, snapshot, graph?
+                    string message = "saved";
+                    byte[] messageBytes = Encoding.Default.GetBytes(message);
+                    response.OutputStream.Write(messageBytes, 0, messageBytes.Length);
 
-                // Send the HTTP response to the client
-                response.Close();
+                    // Send the HTTP response to the client
+                    response.Close();
+                }
             }
         }
 
-        public void executeAction(HttpListenerRequest request)
+        public void TakeSnapshot()
         {
-            var evalComplete = false;
+            _dynamoWindow.Dispatcher.BeginInvoke(new System.Action(() =>
+            {
+                // Once evaluation is completed grab snapshot
+                string path = Path.Combine(outputDir, "output.png");
+                _dynamoViewModel.OnRequestSave3DImage(this, new ImageSaveEventArgs(path));
+                snapshotRetrievalCompletionObject.SetResult("");
+            }));
 
-            // Get graph json out of response body
+        }
+
+        public void ExecuteGraphAction(HttpListenerRequest request)
+        {
+            // 1. Get graph json out of response body
             Stream body = request.InputStream;
             ContextData jsonResult = DeserializeFromStream(body);
             object graph = jsonResult.Graph;
 
             // TODO: 
-            // Set the inputs according to requests
-            // updatedGraph = self.set_workspace_inputs(graph, inputs)
+            // 2. Set the inputs according to requests
+            // object updatedGraph = SetWorkspaceInputs(graph, inputs)
 
-            // Save graph to json file be able to load on Dynamo
-            string tempJsonFilePath = "C:/Users/toulkev/dev/temp.dyn";
+            // 3. Save graph to json file be able to load on Dynamo
+            string tempJsonFilePath = Path.Combine(outputDir, "temp.dyn");
             using (StreamWriter file = File.CreateText(tempJsonFilePath))
             {
                 JsonSerializer serializer = new JsonSerializer();
                 serializer.Serialize(file, graph);
             }
 
-            // Load graph on Dynamo
-            _dynamoViewModel.Model.OpenFileFromPath(tempJsonFilePath, true);
+            // 4. Load dynamo file
+            bool evalCompleted = false;
+            _dynamoWindow.Dispatcher.BeginInvoke( new System.Action(() =>
+            {
+                // Load graph from the temp json file
+                _dynamoViewModel.OpenCommand.Execute(tempJsonFilePath);
+                var homeWorkspace = _dynamoViewModel.Model.CurrentWorkspace as HomeWorkspaceModel;
+                Console.WriteLine("loaded file");
 
-            Console.WriteLine("loaded file");
-            _dynamoViewModel.Model.EvaluationCompleted += (o, args) => { evalComplete = true; };
-            while (evalComplete == false)
+                
+                EventHandler<EvaluationCompletedEventArgs> checkEvaluationCompletion = (sender, e) => { evalCompleted = true; };
+                _dynamoViewModel.Model.EvaluationCompleted += checkEvaluationCompletion;
+                _dynamoViewModel.HomeSpace.Run();
+            }));
+
+            while (evalCompleted == false)
             {
                 Thread.Sleep(250);
             }
 
-            // Example code for grabbing a snaphsot
-            _dynamoWindow.Dispatcher.BeginInvoke(new System.Action(() =>
-            {
-                string path = Path.Combine("C:/Users/toulkev/dev", "output.png");
-                _dynamoViewModel.OnRequestSave3DImage(this, new ImageSaveEventArgs(path));
-                completionObject.SetResult(true);
-            }));
+            // 5. Once the graph evaluation is completed return the result
+            // TODO: Instead of a 'true' flag set the result to be the output values
+            // so it can be later on attached to the response body.
+            graphEvaluationCompletionObject.SetResult(true);
         }
     }
 }
