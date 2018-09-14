@@ -20,8 +20,6 @@ namespace ServerViewExtension
         private Boolean _running, _disposed;
         private DynamoViewModel _viewModel;
         public RequestHelper requestHelper;
-        public static int stepCounter = 0;
-        public static int episodeCounter = 0;
         private Window _dynamoWindow;
 
         public HttpServer(DynamoViewModel viewModel, Window dynamoWindow)
@@ -128,8 +126,6 @@ namespace ServerViewExtension
         public TaskCompletionSource<Object> graphEvaluationCompletionObject;
         public TaskCompletionSource<Object> snapshotRetrievalCompletionObject;
         private Window _dynamoWindow;
-        public const string BackgroundPreviewName = "BackgroundPreview";
-        internal Watch3DView BackgroundPreview { get; private set; }
         private string outputDir = "C:/Users/toulkev/dev/";
 
         public RequestHelper(HttpListenerContext context, DynamoViewModel dynamoViewModel, Window dynamoWindow)
