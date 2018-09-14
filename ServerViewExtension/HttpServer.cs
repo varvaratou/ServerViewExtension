@@ -183,7 +183,7 @@ namespace ServerViewExtension
             // updatedGraph = self.set_workspace_inputs(graph, inputs)
 
             // Save graph to json file be able to load on Dynamo
-            string tempJsonFilePath = "C:/Users/toulkev/dev/temp.json";
+            string tempJsonFilePath = "C:/Users/toulkev/dev/temp.dyn";
             using (StreamWriter file = File.CreateText(tempJsonFilePath))
             {
                 JsonSerializer serializer = new JsonSerializer();
@@ -192,6 +192,7 @@ namespace ServerViewExtension
 
             // Load graph on Dynamo
             _dynamoViewModel.Model.OpenFileFromPath(tempJsonFilePath, true);
+
             Console.WriteLine("loaded file");
             _dynamoViewModel.Model.EvaluationCompleted += (o, args) => { evalComplete = true; };
             while (evalComplete == false)
