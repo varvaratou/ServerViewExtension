@@ -156,7 +156,7 @@ namespace ServerViewExtension
             snapshotRetrievalCompletionObject = new TaskCompletionSource<Object>();
             HttpListenerRequest request = _context.Request;
 
-            ExecuteGraphAction(request);
+            EvaluateGraph(request);
 
             // Prepare response
             var outputsData = graphEvaluationCompletionObject.Task.Result;
@@ -167,6 +167,7 @@ namespace ServerViewExtension
 
                 TakeSnapshot();
                 var snapshotData = snapshotRetrievalCompletionObject.Task.Result;
+
                 if (snapshotData != null)
                 {
                     // Now I just attach a string to the response but normally it will be:
@@ -183,7 +184,7 @@ namespace ServerViewExtension
 
         public void TakeSnapshot()
         {
-            _dynamoWindow.Dispatcher.BeginInvoke(new System.Action(() =>
+            _dynamoWindow.Dispatcher.BeginInvoke(new Action(() =>
             {
                 // Once evaluation is completed grab snapshot
                 string path = Path.Combine(outputDir, "output.png");
@@ -193,7 +194,7 @@ namespace ServerViewExtension
 
         }
 
-        public void ExecuteGraphAction(HttpListenerRequest request)
+        public void EvaluateGraph(HttpListenerRequest request)
         {
             // 1. Get graph json out of response body
             Stream body = request.InputStream;
@@ -214,7 +215,7 @@ namespace ServerViewExtension
 
             // 4. Load dynamo file
             bool evalCompleted = false;
-            _dynamoWindow.Dispatcher.BeginInvoke( new System.Action(() =>
+            _dynamoWindow.Dispatcher.BeginInvoke( new Action(() =>
             {
                 // Load graph from the temp json file
                 _dynamoViewModel.OpenCommand.Execute(tempJsonFilePath);
