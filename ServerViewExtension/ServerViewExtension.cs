@@ -47,7 +47,7 @@ namespace ServerViewExtension
             this.server = new HttpServer(this.dynamoViewModel, this.dynamoWindow);
             this.server.Start();
 
-            sampleMenuItem = new MenuItem { Header = "Show View Extension Sample Window" };
+            sampleMenuItem = new MenuItem { Header = "Show Server View Extension Sample Window" };
             sampleMenuItem.Click += (sender, args) =>
             {
                 var viewModel = new MainWindowViewModel(p);
