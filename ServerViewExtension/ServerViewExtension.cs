@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic; 
 using System.Windows.Controls;
 using Dynamo.Wpf.Extensions;
 using Dynamo.ViewModels;
+using Dynamo.Graph.Nodes; 
 using System.Windows;
 
 
@@ -27,6 +29,8 @@ namespace ServerViewExtension
         private HttpServer server;
         private Window dynamoWindow;
         private DynamoViewModel dynamoViewModel;
+        private IEnumerable<NodeModel> nodes; 
+ 
 
         public void Dispose()
         {
@@ -43,14 +47,14 @@ namespace ServerViewExtension
             // the supplied workspaces
             this.dynamoViewModel = p.DynamoWindow.DataContext as DynamoViewModel;
             this.dynamoWindow = p.DynamoWindow;
-
-            this.server = new HttpServer(this.dynamoViewModel, this.dynamoWindow);
-            this.server.Start();
+            this.nodes = p.CurrentWorkspaceModel.Nodes; 
 
             sampleMenuItem = new MenuItem { Header = "Show Server View Extension Sample Window" };
             sampleMenuItem.Click += (sender, args) =>
             {
                 var viewModel = new MainWindowViewModel(p);
+                this.server = new HttpServer(p, this.dynamoViewModel, this.dynamoWindow);
+                this.server.Start();
 
                 var window = new MainWindow
                 {

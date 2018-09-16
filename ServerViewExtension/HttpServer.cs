@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Text;
 using System.Windows;
 using System.Threading.Tasks;
 using Dynamo.ViewModels;
+using Dynamo.Graph.Nodes;
 using System.IO;
 using Dynamo.Controls;
+using Dynamo.Extensions;
+
 using Newtonsoft.Json;
 
 namespace ServerViewExtension
@@ -17,15 +21,17 @@ namespace ServerViewExtension
         private Thread _connectionThread = null;
         private Boolean _running, _disposed;
         private DynamoViewModel _viewModel;
+        private IEnumerable<NodeModel> _nodes;
+        private Window _dynamoWindow;
         public RequestHelper requestHelper;
         public static int stepCounter = 0;
         public static int episodeCounter = 0;
-        private Window _dynamoWindow;
 
-        public HttpServer(DynamoViewModel viewModel, Window dynamoWindow)
+        public HttpServer(ReadyParams p, DynamoViewModel viewModel ,Window dynamoWindow)
         {
             this._viewModel = viewModel;
             this._dynamoWindow = dynamoWindow;
+            this._nodes = p.CurrentWorkspaceModel.Nodes; 
 
             if (!HttpListener.IsSupported)
             {
@@ -77,7 +83,7 @@ namespace ServerViewExtension
             HttpListenerRequest request = listenerContext.Request;
             string requestHandlerName = request.Url.AbsolutePath;
 
-            requestHelper = new RequestHelper(listenerContext, this._viewModel, this._dynamoWindow);
+            requestHelper = new RequestHelper(listenerContext, this._nodes, this._viewModel, this._dynamoWindow);
             requestHelper.ExecuteAndSendResponse();
         }
 
@@ -127,12 +133,14 @@ namespace ServerViewExtension
         private Window _dynamoWindow;
         public const string BackgroundPreviewName = "BackgroundPreview";
         internal Watch3DView BackgroundPreview { get; private set; }
+        private IEnumerable<NodeModel> _nodes;
 
-        public RequestHelper(HttpListenerContext context, DynamoViewModel dynamoViewModel, Window dynamoWindow)
+        public RequestHelper(HttpListenerContext context,  IEnumerable<NodeModel> nodes, DynamoViewModel dynamoViewModel, Window dynamoWindow)
         {
-            _context = context;
-            _dynamoViewModel = dynamoViewModel;
-            _dynamoWindow = dynamoWindow;
+            this._context = context;
+            this._dynamoViewModel = dynamoViewModel;
+            this._dynamoWindow = dynamoWindow;
+            this._nodes = nodes; 
         }
 
         public static ContextData DeserializeFromStream(Stream stream)
@@ -183,29 +191,44 @@ namespace ServerViewExtension
             // updatedGraph = self.set_workspace_inputs(graph, inputs)
 
             // Save graph to json file be able to load on Dynamo
-            string tempJsonFilePath = "C:/Users/toulkev/dev/temp.json";
+
+
+            string tempJsonFilePath = "C:/Users/Arefin/Desktop/temp.json";
             using (StreamWriter file = File.CreateText(tempJsonFilePath))
             {
                 JsonSerializer serializer = new JsonSerializer();
                 serializer.Serialize(file, graph);
             }
+            string propertyName = "Value";
+            string propertyValue = "25";
 
-            // Load graph on Dynamo
-            _dynamoViewModel.Model.OpenFileFromPath(tempJsonFilePath, true);
-            Console.WriteLine("loaded file");
-            _dynamoViewModel.Model.EvaluationCompleted += (o, args) => { evalComplete = true; };
-            while (evalComplete == false)
+            Dynamo.Graph.UpdateValueParams update = new Dynamo.Graph.UpdateValueParams(propertyName, propertyValue); 
+            foreach(NodeModel node in _nodes)
             {
-                Thread.Sleep(250);
+                if (node.IsSetAsInput)
+                {
+                    node.UpdateValue(update);
+                    node.MarkNodeAsModified(true);
+                }
             }
+            // Load graph on Dynamo
+            //_dynamoViewModel.Model.OpenFileFromPath(tempJsonFilePath, true);
+            //Console.WriteLine("loaded file");
+
+            _dynamoViewModel.Model.EvaluationCompleted += (o, args) => { MessageBox.Show("A solution completed"); };
+            
+            //while (evalComplete == false)
+            //{
+            //    Thread.Sleep(250);
+            //}
 
             // Example code for grabbing a snaphsot
-            _dynamoWindow.Dispatcher.BeginInvoke(new System.Action(() =>
-            {
-                string path = Path.Combine("C:/Users/toulkev/dev", "output.png");
-                _dynamoViewModel.OnRequestSave3DImage(this, new ImageSaveEventArgs(path));
-                completionObject.SetResult(true);
-            }));
+            //_dynamoWindow.Dispatcher.BeginInvoke(new System.Action(() =>
+            //{
+            //    string path = Path.Combine("C:/Users/Arefin/Desktop/", "output.png");
+            //    _dynamoViewModel.OnRequestSave3DImage(this, new ImageSaveEventArgs(path));
+            //    completionObject.SetResult(true);
+            //}));
         }
     }
 }
