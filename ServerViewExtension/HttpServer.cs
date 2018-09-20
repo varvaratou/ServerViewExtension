@@ -120,10 +120,20 @@ namespace ServerViewExtension
 
     public class ContextData
     {
+        public List<ContextItem> Alts { get; set; }
+
+        public ContextData(List<ContextItem> alts)
+        {
+            Alts = alts;
+        }
+    }
+
+    public class ContextItem
+    {
         public object Graph { get; set; }
         public string Id { get; set; }
 
-        public ContextData(object graph, string id)
+        public ContextItem(object graph, string id)
         {
             Graph = graph;
             Id = id;
@@ -158,21 +168,18 @@ namespace ServerViewExtension
     {
         private HttpListenerContext _context;
         private DynamoViewModel _dynamoViewModel;
-        public TaskCompletionSource<Object> graphEvaluationCompletionObject;
+        //public TaskCompletionSource<Object> graphEvaluationCompletionObject;
         public TaskCompletionSource<byte[]> snapshotRetrievalCompletionObject;
         private Window _dynamoWindow;
         private  string _outputDir;
         private HelixWatch3DViewModel _backgroundPreviewViewModel;
-
+        private ContextItem currentRun;
         public RequestHelper(HttpListenerContext context, DynamoViewModel dynamoViewModel, Window dynamoWindow, string outputDir)
         {
             _context = context;
             _dynamoViewModel = dynamoViewModel;
             _dynamoWindow = dynamoWindow;
             _outputDir = outputDir;
-
-            _backgroundPreviewViewModel = _dynamoViewModel.BackgroundPreviewViewModel as HelixWatch3DViewModel;
-            _backgroundPreviewViewModel.PropertyChanged += SceneItems_PropertyChanged;
         }
 
         void SceneItems_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -190,7 +197,6 @@ namespace ServerViewExtension
         public static ContextData DeserializeFromStream(Stream stream)
         {
             var serializer = new JsonSerializer();
-
             using (var sr = new StreamReader(stream))
             using (var jsonTextReader = new JsonTextReader(sr))
             {
@@ -200,38 +206,48 @@ namespace ServerViewExtension
 
         public void ExecuteAndSendResponse()
         {
-            graphEvaluationCompletionObject = new TaskCompletionSource<Object>();
-            snapshotRetrievalCompletionObject = new TaskCompletionSource<byte[]>();
+            _backgroundPreviewViewModel = _dynamoViewModel.BackgroundPreviewViewModel as HelixWatch3DViewModel;
+            _backgroundPreviewViewModel.PropertyChanged += SceneItems_PropertyChanged;
+
             HttpListenerRequest request = _context.Request;
-
-            // 1. Get graph json out of response body
+            // 1. Get the array of requested runs from the request body
             Stream body = request.InputStream;
-            ContextData jsonResult = DeserializeFromStream(body);
-            object graph = jsonResult.Graph;
-            string id = jsonResult.Id;
+            ContextData data = DeserializeFromStream(body);
+            List<ContextItem> requestedRuns = data.Alts;
 
-            EvaluateGraph(graph);
+            List<GraphData> evaluatedRuns = new List<GraphData>();
 
-            // Prepare response
-            var outputsData = graphEvaluationCompletionObject.Task.Result;
-            if (outputsData != null)
+            for (int i = 0; i < requestedRuns.Count; i++)
             {
-                HttpListenerResponse response = this._context.Response;
-                response.StatusCode = (int)HttpStatusCode.OK;
+                this.currentRun = requestedRuns[i];
+                object graph = this.currentRun.Graph;
+                string id = this.currentRun.Id;
 
-                var snapshotData = snapshotRetrievalCompletionObject.Task.Result;
-                if (snapshotData!=null)
+                TaskCompletionSource<Object> graphEvaluationCompletionObject = new TaskCompletionSource<Object>();
+                this.snapshotRetrievalCompletionObject = new TaskCompletionSource<byte[]>();
+
+                object evaluatedGraphJson = EvaluateGraph(graph);
+                graphEvaluationCompletionObject.SetResult(evaluatedGraphJson);
+
+                // Prepare response
+                var outputsData = graphEvaluationCompletionObject.Task.Result;
+                if (outputsData != null)
                 {
-                    GraphData graphData = new GraphData(outputsData, snapshotData, id);
-
-                    byte[] messageBytes = Encoding.Default.GetBytes(JsonConvert.SerializeObject(graphData));
-                    response.OutputStream.Write(messageBytes, 0, messageBytes.Length);
-
-                    // Send the HTTP response to the client
-                    response.Close();
-                    UnregisterListener(); 
+                    var snapshotData = snapshotRetrievalCompletionObject.Task.Result;
+                    if (snapshotData != null)
+                    {
+                        GraphData graphData = new GraphData(outputsData, snapshotData, id);
+                        evaluatedRuns.Add(graphData);
+                    }
                 }
             }
+            HttpListenerResponse response = this._context.Response;
+            response.StatusCode = (int)HttpStatusCode.OK;
+            byte[] messageBytes = Encoding.Default.GetBytes(JsonConvert.SerializeObject(new ResponseData(evaluatedRuns)));
+            response.OutputStream.Write(messageBytes, 0, messageBytes.Length);
+            // Send the HTTP response to the client
+            response.Close();
+            this.UnregisterListener();
         }
 
         public void Save3dImage()
@@ -239,7 +255,7 @@ namespace ServerViewExtension
             _dynamoWindow.Dispatcher.Invoke(
                   DispatcherPriority.ApplicationIdle,
                   new Action(() => {
-                      string path = Path.Combine(_outputDir, "output.bmp");
+                      string path = Path.Combine(_outputDir, "output_" + this.currentRun.Id + ".bmp");
                       _dynamoViewModel.OnRequestSave3DImage(this, new ImageSaveEventArgs(path));
                       Debug.WriteLine("Geometry preview 3d image has been saved to file.");
 
@@ -251,7 +267,7 @@ namespace ServerViewExtension
                   }));
         }
 
-        public void EvaluateGraph(object graph)
+        public object EvaluateGraph(object graph)
         {
             // 2. Save graph to json file be able to load on Dynamo
             string tempJsonFilePath = Path.Combine(_outputDir, "temp.dyn");
@@ -290,7 +306,7 @@ namespace ServerViewExtension
             {
                 JsonSerializer serializer = new JsonSerializer();
                 object jsonGraph = serializer.Deserialize(file, typeof(object));
-                graphEvaluationCompletionObject.SetResult(jsonGraph);
+                return jsonGraph;
             }
         }
 
