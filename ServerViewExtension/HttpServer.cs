@@ -15,8 +15,8 @@ using Dynamo.Wpf.ViewModels.Watch3D;
 using System.Collections;
 using System.Diagnostics;
 using System.ComponentModel;
-using System.Drawing.Imaging;
 using System.Drawing;
+using System.Collections.Generic;
 
 namespace ServerViewExtension
 {
@@ -121,10 +121,36 @@ namespace ServerViewExtension
     public class ContextData
     {
         public object Graph { get; set; }
+        public string Id { get; set; }
 
-        public ContextData(object graph)
+        public ContextData(object graph, string id)
         {
             Graph = graph;
+            Id = id;
+        }
+    }
+
+    public class GraphData
+    {
+        public object Graph { get; set; }
+        public byte[] Image { get; set; }
+        public string Id { get; set; }
+
+        public GraphData(object graph, byte[] img, string id)
+        {
+            Graph = graph;
+            Image = img;
+            Id = id;
+        }
+    }
+
+    public class ResponseData
+    {
+        public List<GraphData> Alts { get; set; }
+
+        public ResponseData(List<GraphData> alts)
+        {
+            Alts = alts;
         }
     }
 
@@ -178,7 +204,13 @@ namespace ServerViewExtension
             snapshotRetrievalCompletionObject = new TaskCompletionSource<byte[]>();
             HttpListenerRequest request = _context.Request;
 
-            EvaluateGraph(request);
+            // 1. Get graph json out of response body
+            Stream body = request.InputStream;
+            ContextData jsonResult = DeserializeFromStream(body);
+            object graph = jsonResult.Graph;
+            string id = jsonResult.Id;
+
+            EvaluateGraph(graph);
 
             // Prepare response
             var outputsData = graphEvaluationCompletionObject.Task.Result;
@@ -190,7 +222,10 @@ namespace ServerViewExtension
                 var snapshotData = snapshotRetrievalCompletionObject.Task.Result;
                 if (snapshotData!=null)
                 {
-                    response.OutputStream.Write(snapshotData, 0, snapshotData.Length);
+                    GraphData graphData = new GraphData(outputsData, snapshotData, id);
+
+                    byte[] messageBytes = Encoding.Default.GetBytes(JsonConvert.SerializeObject(graphData));
+                    response.OutputStream.Write(messageBytes, 0, messageBytes.Length);
 
                     // Send the HTTP response to the client
                     response.Close();
@@ -216,13 +251,8 @@ namespace ServerViewExtension
                   }));
         }
 
-        public void EvaluateGraph(HttpListenerRequest request)
+        public void EvaluateGraph(object graph)
         {
-            // 1. Get graph json out of response body
-            Stream body = request.InputStream;
-            ContextData jsonResult = DeserializeFromStream(body);
-            object graph = jsonResult.Graph;
-
             // 2. Save graph to json file be able to load on Dynamo
             string tempJsonFilePath = Path.Combine(_outputDir, "temp.dyn");
             using (StreamWriter file = File.CreateText(tempJsonFilePath))
@@ -250,10 +280,18 @@ namespace ServerViewExtension
                 Thread.Sleep(250);
             }
 
-            // 5. Once the graph evaluation is completed return the result
-            // TODO: Instead of a 'true' flag set the result to be the output values
-            // so it can be later on attached to the response body.
-            graphEvaluationCompletionObject.SetResult(true);
+            _dynamoWindow.Dispatcher.Invoke(new Action(() =>
+            {
+                _dynamoViewModel.SaveCommand.Execute(tempJsonFilePath);
+            }));
+
+            // deserialize JSON directly from a file
+            using (StreamReader file = File.OpenText(tempJsonFilePath))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                object jsonGraph = serializer.Deserialize(file, typeof(object));
+                graphEvaluationCompletionObject.SetResult(jsonGraph);
+            }
         }
 
         public void UnregisterListener()
