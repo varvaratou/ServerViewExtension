@@ -6,10 +6,17 @@ using System.Windows;
 using System.Threading.Tasks;
 using Dynamo.ViewModels;
 using System.IO;
-using Dynamo.Controls;
 using Newtonsoft.Json;
 using Dynamo.Graph.Workspaces;
 using Dynamo.Models;
+using System.Windows.Threading;
+using Dynamo.Core;
+using Dynamo.Wpf.ViewModels.Watch3D;
+using System.Collections;
+using System.Diagnostics;
+using System.ComponentModel;
+using System.Drawing.Imaging;
+using System.Drawing;
 
 namespace ServerViewExtension
 {
@@ -21,6 +28,7 @@ namespace ServerViewExtension
         private DynamoViewModel _viewModel;
         public RequestHelper requestHelper;
         private Window _dynamoWindow;
+        private static string outputDir = "C:/Users/toulkev/dev/";
 
         public HttpServer(DynamoViewModel viewModel, Window dynamoWindow)
         {
@@ -34,6 +42,7 @@ namespace ServerViewExtension
             }
             _httpListener = new HttpListener();
             _httpListener.Prefixes.Add("http://localhost:8080/");
+
         }
 
         public void Start()
@@ -77,7 +86,7 @@ namespace ServerViewExtension
             HttpListenerRequest request = listenerContext.Request;
             string requestHandlerName = request.Url.AbsolutePath;
 
-            requestHelper = new RequestHelper(listenerContext, this._viewModel, this._dynamoWindow);
+            requestHelper = new RequestHelper(listenerContext, this._viewModel, this._dynamoWindow, outputDir);
             requestHelper.ExecuteAndSendResponse();
         }
 
@@ -119,20 +128,37 @@ namespace ServerViewExtension
         }
     }
 
-    public class RequestHelper
+    public class RequestHelper: NotificationObject
     {
         private HttpListenerContext _context;
         private DynamoViewModel _dynamoViewModel;
         public TaskCompletionSource<Object> graphEvaluationCompletionObject;
-        public TaskCompletionSource<Object> snapshotRetrievalCompletionObject;
+        public TaskCompletionSource<byte[]> snapshotRetrievalCompletionObject;
         private Window _dynamoWindow;
-        private string outputDir = "C:/Users/toulkev/dev/";
+        private  string _outputDir;
+        private HelixWatch3DViewModel _backgroundPreviewViewModel;
 
-        public RequestHelper(HttpListenerContext context, DynamoViewModel dynamoViewModel, Window dynamoWindow)
+        public RequestHelper(HttpListenerContext context, DynamoViewModel dynamoViewModel, Window dynamoWindow, string outputDir)
         {
             _context = context;
             _dynamoViewModel = dynamoViewModel;
             _dynamoWindow = dynamoWindow;
+            _outputDir = outputDir;
+
+            _backgroundPreviewViewModel = _dynamoViewModel.BackgroundPreviewViewModel as HelixWatch3DViewModel;
+            _backgroundPreviewViewModel.PropertyChanged += SceneItems_PropertyChanged;
+        }
+
+        void SceneItems_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "SceneItems")
+            {
+                var a = ((HelixWatch3DViewModel)_dynamoViewModel.BackgroundPreviewViewModel).SceneItems as ICollection;
+                if (a.Count == 4)
+                {
+                    Save3dImage();
+                }
+            }
         }
 
         public static ContextData DeserializeFromStream(Stream stream)
@@ -149,7 +175,7 @@ namespace ServerViewExtension
         public void ExecuteAndSendResponse()
         {
             graphEvaluationCompletionObject = new TaskCompletionSource<Object>();
-            snapshotRetrievalCompletionObject = new TaskCompletionSource<Object>();
+            snapshotRetrievalCompletionObject = new TaskCompletionSource<byte[]>();
             HttpListenerRequest request = _context.Request;
 
             EvaluateGraph(request);
@@ -161,33 +187,33 @@ namespace ServerViewExtension
                 HttpListenerResponse response = this._context.Response;
                 response.StatusCode = (int)HttpStatusCode.OK;
 
-                TakeSnapshot();
                 var snapshotData = snapshotRetrievalCompletionObject.Task.Result;
-
-                if (snapshotData != null)
+                if (snapshotData!=null)
                 {
-                    // Now I just attach a string to the response but normally it will be:
-                    // outputs, snapshot, graph?
-                    string message = "saved";
-                    byte[] messageBytes = Encoding.Default.GetBytes(message);
-                    response.OutputStream.Write(messageBytes, 0, messageBytes.Length);
+                    response.OutputStream.Write(snapshotData, 0, snapshotData.Length);
 
                     // Send the HTTP response to the client
                     response.Close();
+                    UnregisterListener(); 
                 }
             }
         }
 
-        public void TakeSnapshot()
+        public void Save3dImage()
         {
-            _dynamoWindow.Dispatcher.BeginInvoke(new Action(() =>
-            {
-                // Once evaluation is completed grab snapshot
-                string path = Path.Combine(outputDir, "output.png");
-                _dynamoViewModel.OnRequestSave3DImage(this, new ImageSaveEventArgs(path));
-                snapshotRetrievalCompletionObject.SetResult("");
-            }));
+            _dynamoWindow.Dispatcher.Invoke(
+                  DispatcherPriority.ApplicationIdle,
+                  new Action(() => {
+                      string path = Path.Combine(_outputDir, "output.bmp");
+                      _dynamoViewModel.OnRequestSave3DImage(this, new ImageSaveEventArgs(path));
+                      Debug.WriteLine("Geometry preview 3d image has been saved to file.");
 
+                      Bitmap image  = new Bitmap(path);
+                      ImageConverter converter = new ImageConverter();
+                      var byteArray = (byte[])converter.ConvertTo(image, typeof(byte[]));
+
+                      snapshotRetrievalCompletionObject.SetResult(byteArray);
+                  }));
         }
 
         public void EvaluateGraph(HttpListenerRequest request)
@@ -197,28 +223,23 @@ namespace ServerViewExtension
             ContextData jsonResult = DeserializeFromStream(body);
             object graph = jsonResult.Graph;
 
-            // TODO: 
-            // 2. Set the inputs according to requests
-            // object updatedGraph = SetWorkspaceInputs(graph, inputs)
-
-            // 3. Save graph to json file be able to load on Dynamo
-            string tempJsonFilePath = Path.Combine(outputDir, "temp.dyn");
+            // 2. Save graph to json file be able to load on Dynamo
+            string tempJsonFilePath = Path.Combine(_outputDir, "temp.dyn");
             using (StreamWriter file = File.CreateText(tempJsonFilePath))
             {
                 JsonSerializer serializer = new JsonSerializer();
                 serializer.Serialize(file, graph);
             }
 
-            // 4. Load dynamo file
+            // 3. Load dynamo file
             bool evalCompleted = false;
-            _dynamoWindow.Dispatcher.BeginInvoke( new Action(() =>
+            _dynamoWindow.Dispatcher.Invoke( new Action(() =>
             {
                 // Load graph from the temp json file
                 _dynamoViewModel.OpenCommand.Execute(tempJsonFilePath);
                 var homeWorkspace = _dynamoViewModel.Model.CurrentWorkspace as HomeWorkspaceModel;
                 Console.WriteLine("loaded file");
 
-                
                 EventHandler<EvaluationCompletedEventArgs> checkEvaluationCompletion = (sender, e) => { evalCompleted = true; };
                 _dynamoViewModel.Model.EvaluationCompleted += checkEvaluationCompletion;
                 _dynamoViewModel.HomeSpace.Run();
@@ -233,6 +254,11 @@ namespace ServerViewExtension
             // TODO: Instead of a 'true' flag set the result to be the output values
             // so it can be later on attached to the response body.
             graphEvaluationCompletionObject.SetResult(true);
+        }
+
+        public void UnregisterListener()
+        {
+            _backgroundPreviewViewModel.PropertyChanged -= SceneItems_PropertyChanged;
         }
     }
 }
