@@ -212,8 +212,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(ProjectDir)ServerViewExtension_ViewExtensionDefinition.xml" "C:\Users\toulkev\dev\adsk\Dynamo\bin\AnyCPU\Debug\viewExtensions\"
-copy /Y "$(TargetDir)ServerViewExtension.dll" "C:\Users\toulkev\dev\adsk\Dynamo\bin\AnyCPU\Debug\"</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y "$(TargetDir)ServerViewExtension.dll" "C:\Users\Arefin\Documents\Dynamo\bin\AnyCPU\Debug\"
+xcopy /Y "$(ProjectDir)ServerViewExtension_ViewExtensionDefinition.xml" "C:\Users\Arefin\Documents\Dynamo\bin\AnyCPU\Debug\viewExtensions\"
+</PostBuildEvent>
   </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
