@@ -1,0 +1,256 @@
+{
+	"alts": [{
+		"graph": {
+			"Uuid": "106969ef-0c61-4642-b543-8d444107b382",
+			"IsCustomNode": false,
+			"Description": null,
+			"Name": "cube",
+			"ElementResolver": {
+				"ResolutionMap": {
+
+				}
+			},
+			"Inputs": [{
+				"Id": "525607b091274c5ead66762e57fd5037",
+				"Name": "Number Slider",
+				"Type": "number",
+				"Value": "5",
+				"MaximumValue": 100.0,
+				"MinimumValue": 0.0,
+				"StepValue": 0.1,
+				"NumberType": "Double",
+				"Description": "A slider that produces numeric values."
+			}],
+			"Outputs": [{
+				"Id": "14b66839790448a48645dc422eb8698d",
+				"Name": "Watch",
+				"Type": "float",
+				"IntitialValue": "150",
+				"Description": "Visualize the output of node."
+			}],
+			"Nodes": [{
+					"ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+					"NodeType": "FunctionNode",
+					"FunctionSignature": "Autodesk.DesignScript.Geometry.Cuboid.ByLengths@double,double,double",
+					"Id": "f9d72ceb5ae94e2f848a9ffd31097263",
+					"Inputs": [{
+							"Id": "6074c6d6b54e4085b7ef0efb537c660a",
+							"Name": "width",
+							"Description": "double\nDefault value : 1",
+							"UsingDefaultValue": true,
+							"Level": 2,
+							"UseLevels": false,
+							"KeepListStructure": false
+						},
+						{
+							"Id": "992b921e8d1a4264ab40a4cfae738555",
+							"Name": "length",
+							"Description": "double\nDefault value : 1",
+							"UsingDefaultValue": true,
+							"Level": 2,
+							"UseLevels": false,
+							"KeepListStructure": false
+						},
+						{
+							"Id": "2e559f0376aa49b28160c676ff6af1e7",
+							"Name": "height",
+							"Description": "double\nDefault value : 1",
+							"UsingDefaultValue": true,
+							"Level": 2,
+							"UseLevels": false,
+							"KeepListStructure": false
+						}
+					],
+					"Outputs": [{
+						"Id": "af1773a36c7142ffaf2c6e0543e9aef8",
+						"Name": "Cuboid",
+						"Description": "Cuboid",
+						"UsingDefaultValue": false,
+						"Level": 2,
+						"UseLevels": false,
+						"KeepListStructure": false
+					}],
+					"Replication": "Auto",
+					"Description": "Create a Cuboid centered at WCS origin, with width, length, and height.\n\nCuboid.ByLengths (width: double = 1, length: double = 1, height: double = 1): Cuboid"
+				},
+				{
+					"ConcreteType": "CoreNodeModels.Input.DoubleSlider, CoreNodeModels",
+					"NodeType": "NumberInputNode",
+					"NumberType": "Double",
+					"MaximumValue": 100.0,
+					"MinimumValue": 0.0,
+					"StepValue": 0.1,
+					"InputValue": 5.0,
+					"Id": "525607b091274c5ead66762e57fd5037",
+					"Inputs": [
+
+					],
+					"Outputs": [{
+						"Id": "215a173730844fcc8a388df8afa75671",
+						"Name": "",
+						"Description": "Double",
+						"UsingDefaultValue": false,
+						"Level": 2,
+						"UseLevels": false,
+						"KeepListStructure": false
+					}],
+					"Replication": "Disabled",
+					"Description": "A slider that produces numeric values."
+				},
+				{
+					"ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+					"NodeType": "ExtensionNode",
+					"Id": "14b66839790448a48645dc422eb8698d",
+					"Inputs": [{
+						"Id": "a5e254f7163b49738d35faf62a3c1acb",
+						"Name": "",
+						"Description": "Node to evaluate.",
+						"UsingDefaultValue": false,
+						"Level": 2,
+						"UseLevels": false,
+						"KeepListStructure": false
+					}],
+					"Outputs": [{
+						"Id": "4331b77d3eba4a0089059236af438f06",
+						"Name": "",
+						"Description": "Watch contents.",
+						"UsingDefaultValue": false,
+						"Level": 2,
+						"UseLevels": false,
+						"KeepListStructure": false
+					}],
+					"Replication": "Disabled",
+					"Description": "Visualize the output of node."
+				},
+				{
+					"ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+					"NodeType": "FunctionNode",
+					"FunctionSignature": "Autodesk.DesignScript.Geometry.Solid.Area",
+					"Id": "ecde9411022e499cb22423b0061cc85e",
+					"Inputs": [{
+						"Id": "a03672ba058c46acba6baee0c73158bb",
+						"Name": "solid",
+						"Description": "Autodesk.DesignScript.Geometry.Solid",
+						"UsingDefaultValue": false,
+						"Level": 2,
+						"UseLevels": false,
+						"KeepListStructure": false
+					}],
+					"Outputs": [{
+						"Id": "e971bba60ede4a9e9ca1d9de35f2bb79",
+						"Name": "double",
+						"Description": "double",
+						"UsingDefaultValue": false,
+						"Level": 2,
+						"UseLevels": false,
+						"KeepListStructure": false
+					}],
+					"Replication": "Auto",
+					"Description": "Returns the surface area -- sum of all the areas of all faces\n\nSolid.Area: double"
+				}
+			],
+			"Connectors": [{
+					"Start": "af1773a36c7142ffaf2c6e0543e9aef8",
+					"End": "a03672ba058c46acba6baee0c73158bb",
+					"Id": "2f3ddd0f48034ded9dbdf0d58cb13aad"
+				},
+				{
+					"Start": "215a173730844fcc8a388df8afa75671",
+					"End": "6074c6d6b54e4085b7ef0efb537c660a",
+					"Id": "164c682c978840cfbe4710b0f1e8320b"
+				},
+				{
+					"Start": "215a173730844fcc8a388df8afa75671",
+					"End": "992b921e8d1a4264ab40a4cfae738555",
+					"Id": "8faa3461370f491ea3c977f20d2aa0b5"
+				},
+				{
+					"Start": "215a173730844fcc8a388df8afa75671",
+					"End": "2e559f0376aa49b28160c676ff6af1e7",
+					"Id": "b366b10e3e414b809b578b70c0d13777"
+				},
+				{
+					"Start": "e971bba60ede4a9e9ca1d9de35f2bb79",
+					"End": "a5e254f7163b49738d35faf62a3c1acb",
+					"Id": "786ddf797c0c4b5e9c93f4ef8afbec19"
+				}
+			],
+			"Dependencies": [
+
+			],
+			"Bindings": [
+
+			],
+			"View": {
+				"Dynamo": {
+					"ScaleFactor": 1.0,
+					"HasRunWithoutCrash": true,
+					"IsVisibleInDynamoLibrary": true,
+					"Version": "2.1.0.4395",
+					"RunType": "Automatic",
+					"RunPeriod": "1000"
+				},
+				"Camera": {
+					"Name": "Background Preview",
+					"EyeX": -2.9958373367108768,
+					"EyeY": 3.24549044810345,
+					"EyeZ": 14.479880460769238,
+					"LookX": 2.9958373367108768,
+					"LookY": -3.24549044810345,
+					"LookZ": -14.479880460769238,
+					"UpX": 0.0,
+					"UpY": 1.0,
+					"UpZ": 0.0
+				},
+				"NodeViews": [{
+						"ShowGeometry": true,
+						"Name": "Cuboid.ByLengths",
+						"Id": "f9d72ceb5ae94e2f848a9ffd31097263",
+						"IsSetAsInput": false,
+						"IsSetAsOutput": false,
+						"Excluded": false,
+						"X": 427.0,
+						"Y": 328.0
+					},
+					{
+						"ShowGeometry": true,
+						"Name": "Number Slider",
+						"Id": "525607b091274c5ead66762e57fd5037",
+						"IsSetAsInput": true,
+						"IsSetAsOutput": false,
+						"Excluded": false,
+						"X": 88.0,
+						"Y": 360.0
+					},
+					{
+						"ShowGeometry": true,
+						"Name": "Watch",
+						"Id": "14b66839790448a48645dc422eb8698d",
+						"IsSetAsInput": false,
+						"IsSetAsOutput": true,
+						"Excluded": false,
+						"X": 869.68009481355421,
+						"Y": 235.55592149798403
+					},
+					{
+						"ShowGeometry": true,
+						"Name": "Solid.Area",
+						"Id": "ecde9411022e499cb22423b0061cc85e",
+						"IsSetAsInput": false,
+						"IsSetAsOutput": false,
+						"Excluded": false,
+						"X": 657.61913737987948,
+						"Y": 326.52053532889829
+					}
+				],
+				"Annotations": [
+
+				],
+				"X": -154.78156782248578,
+				"Y": 105.53097481496928,
+				"Zoom": 0.730333928139696
+			}
+		},
+		"id": "some id"
+	}]
+}
