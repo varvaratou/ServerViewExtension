@@ -317,9 +317,4 @@ ASALocalRun/
 # MSBuild Binary and Structured Log
 *.binlog
 
-# Dynamo package json
-src/packageAssets/pkg.json
-!src/packageAssets/bin
-!src/packageAssets/bin/*
-!src/packageAssets/extra/3BoxVolumeSurfaceArea.RefineryResults
 ServerViewExtension/ServerViewExtension.csproj
