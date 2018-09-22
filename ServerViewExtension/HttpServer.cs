@@ -12,6 +12,7 @@ using Dynamo.Models;
 using System.Windows.Threading;
 using Dynamo.Core;
 using Dynamo.Wpf.ViewModels.Watch3D;
+using Dynamo.Graph.Nodes;
 using System.Collections;
 using System.Diagnostics;
 using System.ComponentModel;
@@ -145,12 +146,14 @@ namespace ServerViewExtension
         public object Graph { get; set; }
         public byte[] Image { get; set; }
         public string Id { get; set; }
+        public Dictionary<string, string> Outputs { get; set; }
 
-        public GraphData(object graph, byte[] img, string id)
+        public GraphData(object graph, byte[] img, string id, Dictionary<string, string> outputs)
         {
             Graph = graph;
             Image = img;
             Id = id;
+            Outputs = outputs;
         }
     }
 
@@ -233,10 +236,20 @@ namespace ServerViewExtension
                 var outputsData = graphEvaluationCompletionObject.Task.Result;
                 if (outputsData != null)
                 {
+                    WorkspaceModel currentWorkspaceModel = _dynamoViewModel.CurrentSpace;
+                    Dictionary<string, string> graphOutputs = new Dictionary<string, string>();
+                    foreach (NodeModel node in currentWorkspaceModel.Nodes)
+                    {
+                        if (node.IsSetAsOutput)
+                        {
+                            graphOutputs[node.Name] = node.GetValue(0, _dynamoViewModel.Model.EngineController).StringData;
+                        }
+                    }
+
                     var snapshotData = snapshotRetrievalCompletionObject.Task.Result;
                     if (snapshotData != null)
                     {
-                        GraphData graphData = new GraphData(outputsData, snapshotData, id);
+                        GraphData graphData = new GraphData(outputsData, snapshotData, id, graphOutputs);
                         evaluatedRuns.Add(graphData);
                     }
                 }
