@@ -3,6 +3,7 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+ temp
 # User-specific files
 *.suo
 *.user
@@ -323,3 +324,5 @@ src/packageAssets/pkg.json
 !src/packageAssets/bin/*
 !src/packageAssets/extra/3BoxVolumeSurfaceArea.RefineryResults
 ServerViewExtension/ServerViewExtension.csproj
+temp/output_option_1.bmp
+*.bmp
