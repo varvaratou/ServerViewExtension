@@ -1,0 +1,418 @@
+{
+  "Uuid": "106969ef-0c61-4642-b543-8d444107b382",
+  "IsCustomNode": false,
+  "Description": null,
+  "Name": "temp",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [
+    {
+      "Id": "525607b091274c5ead66762e57fd5037",
+      "Name": "width",
+      "Type": "number",
+      "Value": "10.1625",
+      "MaximumValue": 100.0,
+      "MinimumValue": 0.0,
+      "StepValue": 0.1,
+      "NumberType": "Double",
+      "Description": "A slider that produces numeric values."
+    },
+    {
+      "Id": "2891c4ba179b4bd79e080afe64de5e83",
+      "Name": "length",
+      "Type": "number",
+      "Value": "6.7",
+      "MaximumValue": 100.0,
+      "MinimumValue": 0.0,
+      "StepValue": 0.1,
+      "NumberType": "Double",
+      "Description": "A slider that produces numeric values."
+    },
+    {
+      "Id": "4cc3970003ea4c5ca7d56b837a6448c2",
+      "Name": "height",
+      "Type": "number",
+      "Value": "21.7",
+      "MaximumValue": 100.0,
+      "MinimumValue": 0.0,
+      "StepValue": 0.1,
+      "NumberType": "Double",
+      "Description": "A slider that produces numeric values."
+    },
+    {
+      "Id": "63341500542f49a6814de124ccf0a854",
+      "Name": "username",
+      "Type": "string",
+      "Value": "arefin2",
+      "Description": "Creates a string."
+    }
+  ],
+  "Outputs": [
+    {
+      "Id": "14b66839790448a48645dc422eb8698d",
+      "Name": "Watch",
+      "Type": "unknown",
+      "IntitialValue": "",
+      "Description": "Visualize the output of node."
+    }
+  ],
+  "Nodes": [
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "Autodesk.DesignScript.Geometry.Cuboid.ByLengths@double,double,double",
+      "Id": "f9d72ceb5ae94e2f848a9ffd31097263",
+      "Inputs": [
+        {
+          "Id": "6074c6d6b54e4085b7ef0efb537c660a",
+          "Name": "width",
+          "Description": "double\nDefault value : 1",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "992b921e8d1a4264ab40a4cfae738555",
+          "Name": "length",
+          "Description": "double\nDefault value : 1",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "2e559f0376aa49b28160c676ff6af1e7",
+          "Name": "height",
+          "Description": "double\nDefault value : 1",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "af1773a36c7142ffaf2c6e0543e9aef8",
+          "Name": "Cuboid",
+          "Description": "Cuboid",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Cuboid.ByLengths (width: double = 1, length: double = 1, height: double = 1): Cuboid"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.DoubleSlider, CoreNodeModels",
+      "NodeType": "NumberInputNode",
+      "NumberType": "Double",
+      "MaximumValue": 100.0,
+      "MinimumValue": 0.0,
+      "StepValue": 0.1,
+      "InputValue": 10.1625,
+      "Id": "525607b091274c5ead66762e57fd5037",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "215a173730844fcc8a388df8afa75671",
+          "Name": "",
+          "Description": "Double",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A slider that produces numeric values."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "14b66839790448a48645dc422eb8698d",
+      "Inputs": [
+        {
+          "Id": "a5e254f7163b49738d35faf62a3c1acb",
+          "Name": "",
+          "Description": "Node to evaluate.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "4331b77d3eba4a0089059236af438f06",
+          "Name": "",
+          "Description": "Watch contents.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the output of node."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "Autodesk.DesignScript.Geometry.Solid.Area",
+      "Id": "ecde9411022e499cb22423b0061cc85e",
+      "Inputs": [
+        {
+          "Id": "a03672ba058c46acba6baee0c73158bb",
+          "Name": "solid",
+          "Description": "Autodesk.DesignScript.Geometry.Solid",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "e971bba60ede4a9e9ca1d9de35f2bb79",
+          "Name": "double",
+          "Description": "double",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Solid.Area: double"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.DoubleSlider, CoreNodeModels",
+      "NodeType": "NumberInputNode",
+      "NumberType": "Double",
+      "MaximumValue": 100.0,
+      "MinimumValue": 0.0,
+      "StepValue": 0.1,
+      "InputValue": 6.7,
+      "Id": "2891c4ba179b4bd79e080afe64de5e83",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "796d88fef98348668b933f255f1660de",
+          "Name": "",
+          "Description": "Double",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A slider that produces numeric values."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.DoubleSlider, CoreNodeModels",
+      "NodeType": "NumberInputNode",
+      "NumberType": "Double",
+      "MaximumValue": 100.0,
+      "MinimumValue": 0.0,
+      "StepValue": 0.1,
+      "InputValue": 21.7,
+      "Id": "4cc3970003ea4c5ca7d56b837a6448c2",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "7393d95ebd844f7781965f00811cd5c0",
+          "Name": "",
+          "Description": "Double",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A slider that produces numeric values."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels",
+      "NodeType": "StringInputNode",
+      "InputValue": "",
+      "Id": "feedb3cc0f554a828e956d60400ae949",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "c57c914faf994bfda2939d5827929e1a",
+          "Name": "",
+          "Description": "String",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Creates a string."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels",
+      "NodeType": "StringInputNode",
+      "InputValue": "arefin2",
+      "Id": "63341500542f49a6814de124ccf0a854",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "c362b21a025443d882134b7ed4dda742",
+          "Name": "",
+          "Description": "String",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Creates a string."
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "af1773a36c7142ffaf2c6e0543e9aef8",
+      "End": "a03672ba058c46acba6baee0c73158bb",
+      "Id": "2f3ddd0f48034ded9dbdf0d58cb13aad"
+    },
+    {
+      "Start": "215a173730844fcc8a388df8afa75671",
+      "End": "6074c6d6b54e4085b7ef0efb537c660a",
+      "Id": "164c682c978840cfbe4710b0f1e8320b"
+    },
+    {
+      "Start": "e971bba60ede4a9e9ca1d9de35f2bb79",
+      "End": "a5e254f7163b49738d35faf62a3c1acb",
+      "Id": "786ddf797c0c4b5e9c93f4ef8afbec19"
+    },
+    {
+      "Start": "796d88fef98348668b933f255f1660de",
+      "End": "992b921e8d1a4264ab40a4cfae738555",
+      "Id": "f86008ddbb824003953e0a4e42f7787e"
+    },
+    {
+      "Start": "7393d95ebd844f7781965f00811cd5c0",
+      "End": "2e559f0376aa49b28160c676ff6af1e7",
+      "Id": "77c206b29a1f4aa0a2eae156032c01f1"
+    }
+  ],
+  "Dependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.1.0.6141",
+      "RunType": "Automatic",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -15.104341836572189,
+      "EyeY": 14.506632520112154,
+      "EyeZ": 9.98705244997626,
+      "LookX": 13.341350727620608,
+      "LookY": -14.2251724208154,
+      "LookZ": -10.414895115463773,
+      "UpX": 0.36600780538649225,
+      "UpY": 0.8856639100423086,
+      "UpZ": -0.28572316119758073
+    },
+    "NodeViews": [
+      {
+        "Id": "f9d72ceb5ae94e2f848a9ffd31097263",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Cuboid.ByLengths",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 427.0,
+        "Y": 328.0
+      },
+      {
+        "Id": "525607b091274c5ead66762e57fd5037",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Name": "width",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 88.0,
+        "Y": 360.0
+      },
+      {
+        "Id": "14b66839790448a48645dc422eb8698d",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": true,
+        "Name": "Watch",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 869.68009481355421,
+        "Y": 235.55592149798403
+      },
+      {
+        "Id": "ecde9411022e499cb22423b0061cc85e",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "Solid.Area",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 657.61913737987948,
+        "Y": 326.52053532889829
+      },
+      {
+        "Id": "2891c4ba179b4bd79e080afe64de5e83",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Name": "length",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 90.344998599807525,
+        "Y": 432.98026342352381
+      },
+      {
+        "Id": "4cc3970003ea4c5ca7d56b837a6448c2",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Name": "height",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 94.522287231210669,
+        "Y": 505.86554620436931
+      },
+      {
+        "Id": "feedb3cc0f554a828e956d60400ae949",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "String",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 501.32469233855045,
+        "Y": 403.49071937843235
+      },
+      {
+        "Id": "63341500542f49a6814de124ccf0a854",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Name": "username",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 239.84679139004709,
+        "Y": 205.57747931016621
+      }
+    ],
+    "Annotations": [],
+    "X": -1.1895889725389566,
+    "Y": -139.71033107580479,
+    "Zoom": 1.07388137682781
+  }
+}
