@@ -29,7 +29,7 @@ namespace ServerViewExtension
         private DynamoViewModel _viewModel;
         public RequestHelper requestHelper;
         private Window _dynamoWindow;
-        private static string outputDir = "C:/Users/toulkev/dev/";
+        private static string outputDir = "C:/Users/Arefin/Documents/ServerViewExtension/temp/";
 
         public HttpServer(DynamoViewModel viewModel, Window dynamoWindow)
         {

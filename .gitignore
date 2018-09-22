@@ -318,3 +318,5 @@ ASALocalRun/
 *.binlog
 
 ServerViewExtension/ServerViewExtension.csproj
+*.bmp
+temp/temp.dyn
